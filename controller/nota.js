@@ -64,20 +64,43 @@ controller.listar = async () => {
     return await Nota.findAll({
       include: [
         {
-       model: Usuario,
-        as: "usuario",
-      },
-      {
-        model: Checklist,
-        as: "cheklists",
-      },
-
+          model: Usuario,
+          as: "usuario",
+        },
+        {
+          model: Checklist,
+          as: "checklists",
+        },
       ],
     });
-
   } catch (erro) {
     throw erro;
   }
-}
+};
+
+controller.remover = async (id) => {
+  const transacao = await sequelize.transaction();
+
+  try {
+    await Checklist.destroy({
+      where: {
+        notaId: id,
+      },
+      transaction: transacao,
+    });
+
+    await Nota.destroy({
+      where: {
+        id,
+      },
+      transaction: transacao,
+    });
+
+    await transacao.commit();
+  } catch (erro) {
+    await transacao.rollback();
+    throw erro;
+  }
+};
 
 module.exports = controller;
